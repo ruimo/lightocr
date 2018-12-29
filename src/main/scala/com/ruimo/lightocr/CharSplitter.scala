@@ -20,8 +20,8 @@ object CharSplitter {
   def splitChars(
     img: Bits2d,
     maxWidth: Int = MaxWidth, maxHeight: Int = MaxHeight,
-    hEdgeThreshold: Percent = Percent(5), vEdgeThreshold: Percent = Percent(1),
-    acceptableYgap: Percent = Percent(1),
+    hEdgeThreshold: Percent = Percent(5), vEdgeThresholdPerHeight: Percent = Percent(5),
+    acceptableYgap: Percent = Percent(5),
     hSplitter: Bits2d => imm.Seq[Int]
   ): imm.Seq[Rectangle] = {
     val w = img.width
@@ -30,7 +30,7 @@ object CharSplitter {
     if (w > maxWidth) throw new MaxWidthExceededException(w)
     if (h > maxHeight) throw new MaxHeightExceededException(h)
 
-    findVerticalRange(img, vEdgeThreshold, acceptableYgap) match {
+    findVerticalRange(img, vEdgeThresholdPerHeight, acceptableYgap) match {
       case None => imm.Seq()
     }
 
@@ -39,7 +39,7 @@ object CharSplitter {
 
   // Returns y start(inclusive) and y end(exclusive)
   def findVerticalRange(
-    img: Bits2d, vEdgeThreshold: Percent, acceptableYgap: Percent
+    img: Bits2d, vEdgeThresholdPerHeight: Percent, acceptableYgap: Percent
   ): Option[(Int, Int)] = {
     val charExistsRange: imm.Seq[Range] = {
       @tailrec def loop(y: Int = 0, start: Option[Int] = None, sum: imm.Seq[Range] = imm.Seq()): imm.Seq[Range] =
@@ -49,7 +49,7 @@ object CharSplitter {
             case Some(s) => sum :+ Range(s, y)
           }
         } else {
-          val mayCharExists: Boolean = Percent(pixcelCountH(img, y) * 100 / img.width) >= vEdgeThreshold
+          val mayCharExists: Boolean = Percent(pixcelCountH(img, y) * 100 / img.height) >= vEdgeThresholdPerHeight
           if (mayCharExists) {
             start match {
               case None => loop(y + 1, Some(y), sum)
