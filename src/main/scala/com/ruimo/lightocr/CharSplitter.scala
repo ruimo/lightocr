@@ -41,46 +41,50 @@ object CharSplitter {
   def findVerticalRange(
     img: Bits2d, vEdgeThreshold: Percent, acceptableYgap: Percent
   ): Option[(Int, Int)] = {
-    val acceptableYgapDots = acceptableYgap.of(img.height)
-    def isCharExists(y: Int) = Percent(pixcelCountH(img, y) * 100 / img.width) >= vEdgeThreshold
-
-    def init(y: Int): TailRec[Option[(Int, Int)]] =
-      if (y >= img.height) {
-        done(None)
-      } else {
-        if (isCharExists(y))
-          tailcall(foundYstart(y, y))
-        else
-          tailcall(init(y + 1))
-      }
-
-    def foundYstart(y: Int, yStart: Int): TailRec[Option[(Int, Int)]] = {
-      if (y >= img.height) {
-        done(Some(yStart, y))
-      } else {
-        if (isCharExists(y))
-          tailcall(foundYstart(y + 1, yStart))
-        else {
-          if (y - yStart > acceptableYgapDots)
-            tailcall(init(y + 1))
-          else
-            tailcall(foundYend(y + 1, yStart, y))
+    val charExistsRange: imm.Seq[Range] = {
+      @tailrec def loop(y: Int = 0, start: Option[Int] = None, sum: imm.Seq[Range] = imm.Seq()): imm.Seq[Range] =
+        if (y >= img.height) {
+          start match {
+            case None => sum
+            case Some(s) => sum :+ Range(s, y)
+          }
+        } else {
+          val mayCharExists: Boolean = Percent(pixcelCountH(img, y) * 100 / img.width) >= vEdgeThreshold
+          if (mayCharExists) {
+            start match {
+              case None => loop(y + 1, Some(y), sum)
+              case Some(s) => loop(y + 1, start, sum)
+            }
+          } else {
+            start match {
+              case None => loop(y + 1, start, sum)
+              case Some(s) => loop(y + 1, None, sum :+ Range(s, y))
+            }
+          }
         }
+
+      loop()
+    }
+    val converged: imm.Seq[Range] = {
+      val acceptableYgapDots = acceptableYgap.of(img.height)
+
+      @tailrec def loop(list: List[Range], sum: imm.Seq[Range] = imm.Seq()): imm.Seq[Range] = list match {
+        case h0::h1::tail =>
+          if (h1.start - h0.end <= acceptableYgapDots) loop(tail, sum :+ Range(h0.start, h1.end))
+          else loop(h1::tail, sum :+ h0)
+        case head::tail =>
+          sum :+ head
+        case Nil => sum
       }
+
+      loop(charExistsRange.toList)
     }
 
-    def foundYend(y: Int, yStart: Int, yEnd: Int): TailRec[Option[(Int, Int)]] = {
-      if (y >= img.height) {
-        done(Some(yStart, yEnd))
-      } else {
-        if (isCharExists(y))
-          tailcall(foundYstart(y + 1, yStart))
-        else
-          tailcall(foundYend(y + 1, yStart, yEnd))
-      }
+    if (converged.isEmpty) None
+    else {
+      val max = converged.maxBy(_.length)
+      Some(max.start, max.end)
     }
-
-    init(0).result
   }
 
   def pixcelCountH(img: Bits2d, y: Int): Int = {
