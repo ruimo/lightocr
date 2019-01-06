@@ -24,7 +24,7 @@ RUN cd /opt/lightocr/target/universal && \
   echo "#!/bin/bash -xe" > /opt/lightocr/lightocr.sh && \
   echo printenv >> /opt/lightocr/lightocr.sh && \
   echo "ls -lh /opt/lightocr" >> /opt/lightocr/lightocr.sh && \
-  echo /opt/lightocr/target/universal/$cmd/bin/main -J-Xmx512m $* >> /opt/lightocr/lightocr.sh && \
+  echo /opt/lightocr/target/universal/$cmd/bin/lightocr -J-Xmx512m \$\* >> /opt/lightocr/lightocr.sh && \
   chmod +x /opt/lightocr/lightocr.sh
 
 ENTRYPOINT ["/opt/lightocr/lightocr.sh"]

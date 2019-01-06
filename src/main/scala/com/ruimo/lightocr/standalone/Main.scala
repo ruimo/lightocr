@@ -5,11 +5,11 @@ import org.nd4j.linalg.factory.Nd4j
 import java.awt.{Color, Graphics2D, RenderingHints}
 import java.awt.image.BufferedImage
 import java.io.File
-import java.nio.file.{Files, Paths}
+import java.nio.file.{Files, Path, Paths}
+
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.api.ops.impl.indexaccum.IAMax
 import org.nd4j.linalg.factory.Nd4j
-
 import com.ruimo.graphics.twodim.Bits2d
 import com.ruimo.lightocr.CharSplitter
 import com.ruimo.scoins.Percent
@@ -130,16 +130,15 @@ Usage:
     val model = trainMnist()
 
     args.foreach { imgFile =>
-      val outFile = Paths.get(imgFile).resolveSibling(baseName(imgFile) + ".txt")
-      CharSplitter.splitChars(
+      val outFile: Path = Paths.get(imgFile).resolveSibling(baseName(imgFile) + ".txt")
+      val ocredText: String = CharSplitter.splitChars(
         Bits2d(ImageIO.read(new File(imgFile))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
         minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
-      ).zipWithIndex.foreach { case (charImg, i) =>
+      ).map { charImg =>
         val resizedImg = resizeImage(charImg.toBufferedImage)
         invertImage(resizedImg)
-        ImageIO.write(resizedImg, "png", new File("/tmp/test" + i + ".png"))
 
         val data = new Array[Double](28 * 28)
         (0 until 28).foreach { y =>
@@ -157,8 +156,9 @@ Usage:
         val eval = model.output(arr)
         val idx = Nd4j.getExecutioner.execAndReturn(new IAMax(eval)).getFinalResult
 
-        println("digit = " + idx)
-      }
+        idx.toString
+      }.mkString
+      Files.write(outFile, java.util.Arrays.asList(ocredText))
     }
   }
 
