@@ -22,7 +22,8 @@ object CharSplitter {
     img: Bits2d,
     maxWidth: Int = MaxWidth, maxHeight: Int = MaxHeight,
     hEdgeThresholdPerHeight: Percent = Percent(5), vEdgeThresholdPerHeight: Percent = Percent(5),
-    acceptableYgap: Percent = Percent(5),
+    acceptableYgap: Percent = Percent(5), acceptableXgap: Percent = Percent(15),
+    minCharBodyWidthPerHeight: Percent = Percent(20),
     minCharWidthPerHeight: Percent = Percent(50), maxCharWidthPerHeight: Percent = Percent(90)
   ): imm.Seq[Bits2d] = {
     val w = img.width
@@ -38,18 +39,25 @@ object CharSplitter {
         val intMinCharWidth = minCharWidthPerHeight.of(vCropped.height).toInt
         val intMaxCharWidth = maxCharWidthPerHeight.of(vCropped.height).toInt
 
-
-        findHorizontalRange(vCropped, hEdgeThresholdPerHeight) match {
+        findHorizontalRange(
+          vCropped, hEdgeThresholdPerHeight, acceptableXgap, minCharBodyWidthPerHeight
+        ) match {
           case None => imm.Seq()
           case Some((hStart, hEnd)) =>
             val vhCropped = Bits2d.subImage(vCropped, hStart, 0, hEnd - hStart, vCropped.height)
-            val n = findCharSplitCount(vhCropped, minCharWidthPerHeight, maxCharWidthPerHeight)
+            val (offsetX: Int, n: Int) = findCharSplitCount(vhCropped, minCharWidthPerHeight, maxCharWidthPerHeight)
             if (n == 0) imm.Seq()
             else if (n == 1) imm.Seq(vhCropped)
             else {
-              (1 to n).map { i =>
-                val x0 = vhCropped.width * (i - 1) / n
-                val x1 = vhCropped.width * i / n
+              val minCharBodyWidth = minCharBodyWidthPerHeight.of(vhCropped.height)
+              val head =
+                if (minCharBodyWidth <= offsetX) imm.Seq(Bits2d.subImage(vhCropped, 0, 0, offsetX, vhCropped.height))
+                else imm.Seq()
+
+              head ++ (1 to n).map { i =>
+                val x0 = offsetX + vhCropped.width * (i - 1) / n
+                val _x1 = offsetX + vhCropped.width * i / n
+                val x1 = if (_x1 > vhCropped.width) vhCropped.width else _x1
                 Bits2d.subImage(vhCropped, x0, 0, x1 - x0, vhCropped.height)
               }
             }
@@ -100,39 +108,37 @@ object CharSplitter {
 
   // Returns x start(inclusive) and x end(exclusive)
   def findHorizontalRange(
-    img: Bits2d, hEdgeThresholdPerHeight: Percent
+    img: Bits2d, hEdgeThresholdPerHeight: Percent, acceptableXgap: Percent, minCharBodyWidthPerHeight: Percent
   ): Option[(Int, Int)] = {
-    img.save(Paths.get("/tmp/test.png"))
+    def chopEdge(ranges: imm.Seq[Range]): imm.Seq[Range] = {
+      val minWidth = minCharBodyWidthPerHeight.of(img.height).toInt
+
+      val leftChopped = ranges.headOption match {
+        case None => ranges
+        case Some(h) => if (h.length < minWidth) ranges.tail else ranges
+      }
+
+      leftChopped.lastOption match {
+        case None => leftChopped
+        case Some(l) => if (l.length < minWidth) leftChopped.dropRight(1) else leftChopped
+      }
+    }
 
     val charExistsRange: imm.Seq[Range] = findTrueRange(
       x => Percent(blackPixcelCountV(img, x) * 100 / img.height) >= hEdgeThresholdPerHeight,
       img.width
     )
 
-
-    def isCharExists(x: Int): Boolean =
-      Percent(blackPixcelCountV(img, x) * 100 / img.height) >= hEdgeThresholdPerHeight
-
-    @tailrec def findLeft(x: Int = 0): Option[Int] =
-      if (x >= img.width)
-        None
-      else
-        if (isCharExists(x)) Some(x) else findLeft(x + 1)
-
-    @tailrec def findRight(x: Int = img.width - 1): Option[Int] =
-      if (x < 0)
-        None
-      else
-        if (isCharExists(x)) Some(x) else findRight(x - 1)
-
-    findLeft().flatMap { l =>
-      findRight().flatMap { r =>
-        if (l >= r) None else Some(l, r + 1)
-      }
+    val aggregated: imm.Seq[Range] = chopEdge(aggregateRange(charExistsRange.toList, acceptableXgap.of(img.height).toInt))
+    aggregated.size match {
+      case 0 => None
+      case 1 => Some(aggregated.head.start, aggregated.head.end)
+      case _ => Some(aggregated.head.start, aggregated.last.end)
     }
   }
 
-  def findCharSplitCount(img: Bits2d, minCharWidthPerHeight: Percent, maxCharWidthPerHeight: Percent): Int = {
+  // returns X offset and split count.
+  def findCharSplitCount(img: Bits2d, minCharWidthPerHeight: Percent, maxCharWidthPerHeight: Percent): (Int, Int) = {
     val w = img.visibleRect.width
     val h = img.visibleRect.height
 
@@ -142,17 +148,33 @@ object CharSplitter {
     val maxCount: Int = ((w + minCharWidth - 1) / minCharWidth)
     val minCount = w / maxCharWidth
 
-    def errorCount(splitCount: Int): Int =
-      if (splitCount == 1) 0 else (1 until splitCount).foldLeft(0) { (sum, i) =>
-        val x = w * i / splitCount
-        sum + blackPixcelCountV(img, x)
+    case class ErrorSum(count: Int = 0, errorSum: Int = 0) {
+      def average: Double = errorSum.toDouble / count
+      def addError(error: Int): ErrorSum = copy(count + 1, errorSum + error)
+    }
+
+    def errorSum(splitCount: Int, offset: Int): ErrorSum =
+      if (splitCount == 1) ErrorSum() else {
+        val initialError = if (offset == 0) ErrorSum() else ErrorSum().addError(blackPixcelCountV(img, offset - 1))
+
+        (1 until splitCount).foldLeft(initialError) { (sum, i) =>
+          val x = offset + w * i / splitCount
+          if (x >= w) sum else sum.addError(blackPixcelCountV(img, x))
+        }
       }
 
-    (minCount to maxCount).map { cnt =>
-      (cnt, errorCount(cnt))
-    }.minBy { case (c, e) =>
-      e / c
-    }._1
+    val result = (minCount to maxCount).map { cnt =>
+      val charWidth = w / cnt
+      val offsetAndMinErr  = (0 until charWidth).foldLeft((0, Double.MaxValue)) { (min, offset) =>
+        val err = errorSum(cnt, offset).average
+        if (err < min._2) (offset, err) else min
+      }
+      (cnt, offsetAndMinErr)
+    }.minBy { case (c, oame) =>
+      oame._2
+    }
+
+    (result._2._1, result._1)
   }
 
   private[this] def aggregateRange(ranges: List[Range], acceptableGap: Int): imm.Seq[Range] = {
