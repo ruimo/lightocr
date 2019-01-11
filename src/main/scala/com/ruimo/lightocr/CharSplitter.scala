@@ -1,6 +1,7 @@
 package com.ruimo.lightocr
 
 import java.awt.image.BufferedImage
+import java.nio.file.Paths
 
 import com.ruimo.graphics.twodim.{Bits2d, Rectangle}
 import com.ruimo.scoins.Percent
@@ -34,6 +35,10 @@ object CharSplitter {
       case None => imm.Seq()
       case Some((vStart, vEnd)) =>
         val vCropped = Bits2d.subImage(img, 0, vStart, img.width, vEnd - vStart)
+        val intMinCharWidth = minCharWidthPerHeight.of(vCropped.height).toInt
+        val intMaxCharWidth = maxCharWidthPerHeight.of(vCropped.height).toInt
+
+
         findHorizontalRange(vCropped, hEdgeThresholdPerHeight) match {
           case None => imm.Seq()
           case Some((hStart, hEnd)) =>
@@ -97,6 +102,14 @@ object CharSplitter {
   def findHorizontalRange(
     img: Bits2d, hEdgeThresholdPerHeight: Percent
   ): Option[(Int, Int)] = {
+    img.save(Paths.get("/tmp/test.png"))
+
+    val charExistsRange: imm.Seq[Range] = findTrueRange(
+      x => Percent(blackPixcelCountV(img, x) * 100 / img.height) >= hEdgeThresholdPerHeight,
+      img.width
+    )
+
+
     def isCharExists(x: Int): Boolean =
       Percent(blackPixcelCountV(img, x) * 100 / img.height) >= hEdgeThresholdPerHeight
 

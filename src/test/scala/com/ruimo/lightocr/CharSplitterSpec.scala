@@ -275,5 +275,26 @@ class CharSplitterSpec extends Specification {
 
       1 === 1
     }
+
+    "Can split chars 010" in {
+      val imgs = CharSplitter.splitChars(
+        Bits2d(ImageIO.read(new File("testdata/char-splitter/010/test.png"))),
+        hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
+        acceptableYgap = Percent(5),
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+      )
+
+imgs.zipWithIndex.foreach { case (bits, idx) =>
+  bits.save(Paths.get("/tmp/" + idx + ".png"))
+}
+
+      imgs.size === 6
+
+      (0 until 4).foreach { i =>
+        Bits2d(ImageIO.read(new File(f"testdata/char-splitter/010/$i%03d.png"))).isSameImage(imgs(i)) === true
+      }
+
+      1 === 1
+    }
   }
 }
