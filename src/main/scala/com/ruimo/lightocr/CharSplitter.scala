@@ -143,28 +143,41 @@ object CharSplitter {
       val charNotExistsRange: imm.Seq[Range] = complementRange(charExistsRange, img.width).filter { r =>
         range.start <= r.start && r.end <= range.end
       }
-      val splitCandPoints: imm.Seq[Double] = charNotExistsRange.map(r => r.start + (r.end - r.start).toDouble / 2)
-      estimatedWidth(
-        splitCandPoints, minCharWidthPerHeight.of(img.height), maxCharWidthPerHeight.of(img.height)
-      ).map { charWidth =>
-        val p = findMostApplicableSplitPoint(splitCandPoints, charWidth)
-        val d = ((p - range.start) / charWidth).toInt
-        val startX = p - d * charWidth
-        val minCharWidth = minCharWidthPerHeight.of(img.height)
-        def loop(result: imm.Seq[Bits2d] = imm.Seq(), n: Int = 1): imm.Seq[Bits2d] = {
-          val x0 = (startX + (n - 1) * charWidth + 0.5).toInt
-          val x1 = (startX + n * charWidth + 0.5).toInt
-          if (x1 >= range.end) {
-            if (minCharWidth <= range.end - x0) result :+ Bits2d.subImage(img, x0, 0, range.end - x0, img.height)
-            else result
-          } else {
-            loop(result :+ Bits2d.subImage(img, x0, 0, x1 - x0, img.height), n + 1)
+      if (charNotExistsRange.isEmpty) {
+        imm.Seq(Bits2d.subImage(img, range.start, 0, range.length, img.height))
+      } else if (charNotExistsRange.size == 1) {
+        val r = charNotExistsRange.head
+        val x = r.start + (r.end - r.start) / 2
+        imm.Seq(
+          Bits2d.subImage(img, range.start, 0, x - range.start, img.height),
+          Bits2d.subImage(img, x, 0, range.end - x, img.height)
+        )
+      } else {
+        val splitCandPoints: imm.Seq[Double] = charNotExistsRange.map(r => r.start + (r.end - r.start).toDouble / 2)
+        estimatedWidth(
+          splitCandPoints, minCharWidthPerHeight.of(img.height), maxCharWidthPerHeight.of(img.height)
+        ).map { charWidth =>
+          val p = findMostApplicableSplitPoint(splitCandPoints, charWidth)
+          val d = ((p - range.start) / charWidth).toInt
+          val startX = p - d * charWidth
+          val minCharWidth = minCharWidthPerHeight.of(img.height)
+
+          def loop(result: imm.Seq[Bits2d] = imm.Seq(), n: Int = 1): imm.Seq[Bits2d] = {
+            val x0 = (startX + (n - 1) * charWidth + 0.5).toInt
+            val x1 = (startX + n * charWidth + 0.5).toInt
+            if (x1 >= range.end) {
+              if (minCharWidth <= range.end - x0) result :+ Bits2d.subImage(img, x0, 0, range.end - x0, img.height)
+              else result
+            } else {
+              loop(result :+ Bits2d.subImage(img, x0, 0, x1 - x0, img.height), n + 1)
+            }
           }
+
+          if (minCharBodyWidth <= startX - range.start)
+            loop(imm.Seq(Bits2d.subImage(img, range.start, 0, (startX - range.start).toInt, img.height)))
+          else
+            loop()
         }
-        if (minCharBodyWidth <= startX - range.start)
-          loop(imm.Seq(Bits2d.subImage(img, range.start, 0, (startX - range.start).toInt, img.height)))
-        else
-          loop()
       }.getOrElse(imm.Seq())
     }.getOrElse(imm.Seq())
   }
@@ -194,6 +207,7 @@ object CharSplitter {
   ): Option[Double] = {
     val splitWidths: imm.Seq[Double] =
       splitPoints.sliding(2).map(e => e(1) - e(0)).filter { w => minCharWidth <= w && w <= maxCharWidth }.toVector
+
     if (splitWidths.isEmpty) None
     else {
       case class QuantizedWidth(quantized: Double, realWidth: Double)
