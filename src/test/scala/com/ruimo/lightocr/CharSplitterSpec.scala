@@ -7,6 +7,7 @@ import com.ruimo.graphics.twodim.Bits2d
 import com.ruimo.scoins.Percent
 import javax.imageio.ImageIO
 import org.specs2.mutable.Specification
+import scala.collection.{immutable => imm}
 
 class CharSplitterSpec extends Specification {
   "CharSplitterSpec" should {
@@ -37,44 +38,6 @@ class CharSplitterSpec extends Specification {
 
       val img009 = Bits2d(ImageIO.read(new File("testdata/char-splitter/009.png")))
       CharSplitter.findVerticalRange(img009, Percent(5), Percent(5)) === Some(1, 14)
-    }
-
-    "Can detect x range" in {
-      val img001 = Bits2d(ImageIO.read(new File("testdata/char-splitter/001.png")))
-      val vClip001 = Bits2d.subImage(img001, 0, 4, img001.width, 16 - 4)
-      CharSplitter.findHorizontalRange(vClip001, Percent(5), Percent(20), Percent(20)) === Some(7, 78)
-
-      val img002 = Bits2d(ImageIO.read(new File("testdata/char-splitter/002.png")))
-      val vClip002 = Bits2d.subImage(img002, 0, 11, img002.width, 24 - 11)
-      CharSplitter.findHorizontalRange(vClip002, Percent(5), Percent(20), Percent(20)) === Some(9, 82)
-
-      val img003 = Bits2d(ImageIO.read(new File("testdata/char-splitter/003.png")))
-      val vClip003 = Bits2d.subImage(img003, 0, 6, img003.width, 19 - 6)
-      CharSplitter.findHorizontalRange(vClip003, Percent(5), Percent(20), Percent(20)) === Some(17, 57)
-
-      val img004 = Bits2d(ImageIO.read(new File("testdata/char-splitter/004.png")))
-      val vClip004 = Bits2d.subImage(img004, 0, 6, img004.width, 19 - 6)
-      CharSplitter.findHorizontalRange(vClip004, Percent(5), Percent(20), Percent(20)) === Some(34, 116)
-
-      val img005 = Bits2d(ImageIO.read(new File("testdata/char-splitter/005.png")))
-      val vClip005 = Bits2d.subImage(img005, 0, 6, img005.width, 19 - 6)
-      CharSplitter.findHorizontalRange(vClip005, Percent(5), Percent(20), Percent(20)) === Some(9, 92)
-
-      val img006 = Bits2d(ImageIO.read(new File("testdata/char-splitter/006.png")))
-      val vClip006 = Bits2d.subImage(img006, 0, 5, img006.width, 21 - 5)
-      CharSplitter.findHorizontalRange(vClip006, Percent(5), Percent(20), Percent(20)) === Some(9, 230)
-
-      val img007 = Bits2d(ImageIO.read(new File("testdata/char-splitter/007.png")))
-      val vClip007 = Bits2d.subImage(img007, 0, 4, img007.width, 18 - 4)
-      CharSplitter.findHorizontalRange(vClip007, Percent(5), Percent(20), Percent(20)) === Some(38, 98)
-
-      val img008 = Bits2d(ImageIO.read(new File("testdata/char-splitter/008.png")))
-      val vClip008 = Bits2d.subImage(img008, 0, 6, img008.width, 19 - 6)
-      CharSplitter.findHorizontalRange(vClip008, Percent(5), Percent(20), Percent(20)) === Some(17, 57)
-
-      val img009 = Bits2d(ImageIO.read(new File("testdata/char-splitter/009.png")))
-      val vClip009 = Bits2d.subImage(img009, 0, 1, img009.width, 14 - 1)
-      CharSplitter.findHorizontalRange(vClip009, Percent(5), Percent(20), Percent(20)) === Some(12, 52)
     }
 
     "Can split chars count" in {
@@ -131,11 +94,8 @@ class CharSplitterSpec extends Specification {
         acceptableYgap = Percent(5),
         minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
       )
-      imgs.size === 7
 
-imgs.zipWithIndex.foreach { case (img, idx) =>
-  img.save(Paths.get("/tmp/test" + idx + ".png"))
-}
+      imgs.size === 7
 
       (0 until 7).foreach { i =>
         Bits2d(ImageIO.read(new File(f"testdata/char-splitter/001/$i%03d.png"))).isSameImage(imgs(i)) === true
@@ -290,7 +250,7 @@ imgs.zipWithIndex.foreach { case (img, idx) =>
 
       imgs.size === 6
 
-      (0 until 4).foreach { i =>
+      (0 until 6).foreach { i =>
         Bits2d(ImageIO.read(new File(f"testdata/char-splitter/010/$i%03d.png"))).isSameImage(imgs(i)) === true
       }
 
@@ -305,17 +265,26 @@ imgs.zipWithIndex.foreach { case (img, idx) =>
         minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
       )
 
-      imgs.zipWithIndex.foreach { case (bits, idx) =>
-        bits.save(Paths.get("/tmp/" + idx + ".png"))
-      }
-
       imgs.size === 6
 
-      (0 until 4).foreach { i =>
-        Bits2d(ImageIO.read(new File(f"testdata/char-splitter/010/$i%03d.png"))).isSameImage(imgs(i)) === true
+      (0 until 6).foreach { i =>
+        Bits2d(ImageIO.read(new File(f"testdata/char-splitter/011/$i%03d.png"))).isSameImage(imgs(i)) === true
       }
 
       1 === 1
+    }
+
+    "Complement ranges" in {
+      CharSplitter.complementRange(imm.Seq(), 0) === imm.Seq()
+      CharSplitter.complementRange(imm.Seq(), 10) === imm.Seq(Range(0, 10))
+      CharSplitter.complementRange(imm.Seq(Range(0, 10)), 10) === imm.Seq()
+      CharSplitter.complementRange(imm.Seq(Range(1, 10)), 10) === imm.Seq(Range(0, 1))
+      CharSplitter.complementRange(imm.Seq(Range(1, 8)), 10) === imm.Seq(Range(0, 1), Range(8, 10))
+      CharSplitter.complementRange(imm.Seq(Range(1, 3), Range(3, 5)), 10) === imm.Seq(Range(0, 1), Range(5, 10))
+      CharSplitter.complementRange(imm.Seq(Range(1, 3), Range(5, 7)), 10) === imm.Seq(Range(0, 1), Range(3, 5), Range(7, 10))
+      CharSplitter.complementRange(imm.Seq(Range(1, 3), Range(5, 7)), 7) === imm.Seq(Range(0, 1), Range(3, 5))
+      CharSplitter.complementRange(imm.Seq(Range(0, 3), Range(5, 7)), 7) === imm.Seq(Range(3, 5))
+      CharSplitter.complementRange(imm.Seq(Range(0, 3), Range(5, 7)), 8) === imm.Seq(Range(3, 5), Range(7, 8))
     }
   }
 }
