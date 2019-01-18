@@ -88,7 +88,7 @@ Usage:
         Bits2d(ImageIO.read(new File(imgFile))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       ).zipWithIndex.foreach { case (split, i) =>
           split.save(outDir.resolve(f"$i%03d.png"))
       }
@@ -146,7 +146,7 @@ Usage:
         Bits2d(ImageIO.read(new File(imgFile))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       ).map { charImg =>
         val resizedImg = resizeImage(charImg.toBufferedImage)
         invertImage(resizedImg)
@@ -214,7 +214,7 @@ Usage:
         Bits2d(ImageIO.read(new File(imgFile))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       ).foreach { charImg =>
         PathUtil.withTempFile(prefix = None, suffix = None) { txtFile =>
           PathUtil.withTempFile(prefix = None, suffix = None) { f =>
