@@ -5,6 +5,7 @@ import org.nd4j.linalg.factory.Nd4j
 import java.awt.{Color, Graphics2D, RenderingHints}
 import java.awt.image.BufferedImage
 import java.io.File
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path, Paths}
 
 import org.nd4j.linalg.api.ndarray.INDArray
@@ -12,7 +13,7 @@ import org.nd4j.linalg.api.ops.impl.indexaccum.IAMax
 import org.nd4j.linalg.factory.Nd4j
 import com.ruimo.graphics.twodim.Bits2d
 import com.ruimo.lightocr.CharSplitter
-import com.ruimo.scoins.Percent
+import com.ruimo.scoins.{PathUtil, Percent}
 import javax.imageio.ImageIO
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.deeplearning4j.datasets.iterator.impl.MnistDataSetIterator
@@ -27,6 +28,8 @@ import org.nd4j.linalg.activations.Activation
 import org.nd4j.linalg.learning.config.Nesterovs
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction
 
+import scala.sys.process.Process
+
 object Main {
   def main(args: Array[String]) {
     if (args.length == 0) help()
@@ -34,6 +37,7 @@ object Main {
       args(0).toLowerCase match {
         case "split" => split(args.tail.toList)
         case "ocr" => ocr(args.tail.toList)
+        case "tesseract" => tesseract(args.tail.toList)
         case "help" => help()
         case _ =>
           throw new IllegalArgumentException("Function " + args(0) + " is invalid. Specify help for usage.")
@@ -56,6 +60,13 @@ Usage:
   ocr imageFile0 imageFile1...
     OCR the specified image as digits. The OCRed digits are store in a file named the same base name having ".txt" extension.
     ex) ocr test001.png
+      OCR the test001.png into test001.txt
+
+
+  tesseract imageFile0 imageFile1...
+    OCR the specified image as digits. The OCRed digits are store in a file named the same base name having ".txt" extension.
+    Use tesseract OCR for each single character's recognition.
+    ex) tesseract test001.png
       OCR the test001.png into test001.txt
 """
     )
@@ -192,6 +203,32 @@ Usage:
         val invC = new Color(255 - c.getRed, 255 - c.getGreen, 255 - c.getBlue)
         image.setRGB(x, y, invC.getRGB)
       }
+    }
+  }
+
+  def tesseract(args: List[String]) {
+    args.foreach { imgFile =>
+      val outFile: Path = Paths.get(imgFile).resolveSibling(baseName(imgFile) + ".txt")
+      val buffer = new StringBuilder
+      CharSplitter.splitChars(
+        Bits2d(ImageIO.read(new File(imgFile))),
+        hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
+        acceptableYgap = Percent(5),
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+      ).foreach { charImg =>
+        PathUtil.withTempFile(prefix = None, suffix = None) { txtFile =>
+          PathUtil.withTempFile(prefix = None, suffix = None) { f =>
+            charImg.save(f)
+            val cmd = "tesseract " + f.toAbsolutePath + " stdout -psm 10 digits"
+            println("Invoking [" + cmd + "]")
+            (Process(cmd) #> txtFile.toFile run) exitValue()
+
+            val lines = Files.readAllLines(txtFile)
+            if (! lines.isEmpty) buffer.append(lines.get(0))
+          }.get
+        }.get
+      }
+      Files.write(outFile, java.util.Arrays.asList(buffer.toString), StandardCharsets.UTF_8)
     }
   }
 }

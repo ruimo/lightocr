@@ -92,7 +92,7 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/001.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
 
       imgs.size === 7
@@ -109,7 +109,7 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/002.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
 
       imgs.size === 7
@@ -126,7 +126,7 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/003.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
 
       imgs.size === 4
@@ -143,7 +143,7 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/004.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
 
       imgs.size === 8
@@ -160,7 +160,7 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/005.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
 
       imgs.size === 8
@@ -177,7 +177,7 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/006.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
 
       imgs.size === 21
@@ -194,7 +194,7 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/007.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
 
       imgs.size === 6
@@ -211,7 +211,7 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/008.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
 
       imgs.size === 4
@@ -228,7 +228,7 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/009.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
 
       imgs.size === 4
@@ -245,7 +245,7 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/010/test.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
 
       imgs.size === 6
@@ -262,7 +262,7 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/011/test.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
 
       imgs.size === 6
@@ -279,7 +279,7 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/012/test.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
       imgs.size === 1
 
@@ -295,13 +295,47 @@ class CharSplitterSpec extends Specification {
         Bits2d(ImageIO.read(new File("testdata/char-splitter/013/test.png"))),
         hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
         acceptableYgap = Percent(5),
-        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(90)
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
       )
 
       imgs.size === 2
 
       (0 until 1).foreach { i =>
         Bits2d(ImageIO.read(new File(f"testdata/char-splitter/013/$i%03d.png"))).isSameImage(imgs(i)) === true
+      }
+
+      1 === 1
+    }
+
+    "Can split chars 014" in {
+      val imgs = CharSplitter.splitChars(
+        Bits2d(ImageIO.read(new File("testdata/char-splitter/014/input.png"))),
+        hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
+        acceptableYgap = Percent(5),
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
+      )
+
+      imgs.size === 6
+
+      (0 until 6).foreach { i =>
+        Bits2d(ImageIO.read(new File(f"testdata/char-splitter/014/$i%03d.png"))).isSameImage(imgs(i)) === true
+      }
+
+      1 === 1
+    }
+
+    "Can split chars 015" in {
+      val imgs = CharSplitter.splitChars(
+        Bits2d(ImageIO.read(new File("testdata/char-splitter/015/input.png"))),
+        hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
+        acceptableYgap = Percent(5),
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
+      )
+
+      imgs.size === 3
+
+      (0 until 3).foreach { i =>
+        Bits2d(ImageIO.read(new File(f"testdata/char-splitter/015/$i%03d.png"))).isSameImage(imgs(i)) === true
       }
 
       1 === 1

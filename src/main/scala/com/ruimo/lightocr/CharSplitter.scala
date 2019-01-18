@@ -24,7 +24,7 @@ object CharSplitter {
     hEdgeThresholdPerHeight: Percent = Percent(5), vEdgeThresholdPerHeight: Percent = Percent(5),
     acceptableYgap: Percent = Percent(5), acceptableXgap: Percent = Percent(15),
     minCharBodyWidthPerHeight: Percent = Percent(20),
-    minCharWidthPerHeight: Percent = Percent(50), maxCharWidthPerHeight: Percent = Percent(90)
+    minCharWidthPerHeight: Percent = Percent(50), maxCharWidthPerHeight: Percent = Percent(110)
   ): imm.Seq[Bits2d] = {
     val w = img.width
     val h = img.height
