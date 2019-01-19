@@ -23,7 +23,7 @@ object CharSplitter {
     maxWidth: Int = MaxWidth, maxHeight: Int = MaxHeight,
     hEdgeThresholdPerHeight: Percent = Percent(5), vEdgeThresholdPerHeight: Percent = Percent(5),
     acceptableYgap: Percent = Percent(5), acceptableXgap: Percent = Percent(15),
-    minCharBodyWidthPerHeight: Percent = Percent(20),
+    minCharBodyWidthPerHeight: Percent = Percent(15),
     minCharWidthPerHeight: Percent = Percent(50), maxCharWidthPerHeight: Percent = Percent(110)
   ): imm.Seq[Bits2d] = {
     val w = img.width
@@ -115,7 +115,7 @@ object CharSplitter {
     val charExistsRange: imm.Seq[Range] = findTrueRange(
       x => Percent(blackPixcelCountV(img, x) * 100 / img.height) >= hEdgeThresholdPerHeight,
       img.width
-    ).filter(r => r.length >= minCharBodyWidth)
+    ).filter { _.length >= minCharBodyWidth }
     val edgeChoppedRange: Option[Range] = {
       def chopEdge(ranges: imm.Seq[Range]): imm.Seq[Range] = {
         val minWidth = minCharBodyWidthPerHeight.of(img.height).toInt

@@ -341,6 +341,25 @@ class CharSplitterSpec extends Specification {
       1 === 1
     }
 
+    "Can split chars 016" in {
+      val imgs = CharSplitter.splitChars(
+        Bits2d(ImageIO.read(new File("testdata/char-splitter/016/input.png"))),
+        hEdgeThresholdPerHeight = Percent(5), vEdgeThresholdPerHeight = Percent(5),
+        acceptableYgap = Percent(5),
+        minCharWidthPerHeight = Percent(50), maxCharWidthPerHeight = Percent(110)
+      )
+
+      imgs.size === 10
+imgs.zipWithIndex.foreach { case (img, i) =>
+    img.save(Paths.get("/tmp/00" + i + ".png"))
+}
+      (0 until 10).foreach { i =>
+        Bits2d(ImageIO.read(new File(f"testdata/char-splitter/016/$i%03d.png"))).isSameImage(imgs(i)) === true
+      }
+
+      1 === 1
+    }
+
     "Complement ranges" in {
       CharSplitter.complementRange(imm.Seq(), 0) === imm.Seq()
       CharSplitter.complementRange(imm.Seq(), 10) === imm.Seq(Range(0, 10))
